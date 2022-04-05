@@ -14,6 +14,9 @@ import {
   useStore,
 } from 'zustand'
 
+/**
+ * @deprecated Use `typeof MyContext.useStore` instead.
+ */
 export type UseContextStore<T extends State> = {
   (): T
   <U>(selector: StateSelector<T, U>, equalityFn?: EqualityChecker<U>): U

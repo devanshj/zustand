@@ -78,14 +78,33 @@ export interface PersistOptions<S, PersistedState = S> {
 type PersistListener<S> = (state: S) => void
 
 interface StorePersist<S extends State, Ps> {
-  persist: {
-    setOptions: (options: Partial<PersistOptions<S, Ps>>) => void
-    clearStorage: () => void
-    rehydrate: () => Promise<void>
-    hasHydrated: () => boolean
-    onHydrate: (fn: PersistListener<S>) => () => void
-    onFinishHydration: (fn: PersistListener<S>) => () => void
-  }
+  persist: StorePersistMethods<S, Ps>
+}
+
+interface StorePersistMethods<S extends State, Ps> extends StorePersistMethodsWithoutSetOptions<S, Ps> {
+  setOptions: (options: Partial<PersistOptions<S, Ps>>) => void
+}
+
+interface StorePersistMethodsWithoutSetOptions<S extends State, Ps> {
+  clearStorage: () => void
+  rehydrate: () => Promise<void>
+  hasHydrated: () => boolean
+  onHydrate: (fn: PersistListener<S>) => () => void
+  onFinishHydration: (fn: PersistListener<S>) => () => void
+}
+
+export type StorePersistRemoveSetOptions<S> = 
+  S extends StorePersist<infer S, infer Ps>
+    ? Write<S, StorePersistWithoutSetOptions<S, Ps>>
+    : S
+
+export type StorePersistAddSetOption<S> =
+  S extends StorePersistWithoutSetOptions<infer S, infer Ps>
+    ? Write<S, StorePersist<S, Ps>>
+    : S
+
+interface StorePersistWithoutSetOptions<S extends State, Ps> {
+  persist: StorePersistMethodsWithoutSetOptions<S, Ps>
 }
 
 interface Thenable<Value> {

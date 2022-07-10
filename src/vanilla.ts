@@ -1,3 +1,5 @@
+import type { StorePersistRemoveSetOptions } from "./middleware/persist"
+
 export type State = object
 export type PartialState<T extends State> =
   | Partial<T>
@@ -36,7 +38,7 @@ export type StateCreator<
 > = ((
   setState: Get<Mutate<StoreApi<T>, Mis>, 'setState', undefined>,
   getState: Get<Mutate<StoreApi<T>, Mis>, 'getState', undefined>,
-  store: Mutate<StoreApi<T>, Mis>,
+  store: StorePersistRemoveSetOptions<Mutate<StoreApi<T>, Mis>>,
   $$storeMutations: Mis
 ) => U) & { $$storeMutators?: Mos }
 

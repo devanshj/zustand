@@ -1,8 +1,9 @@
-import create, { State, StoreApi } from 'zustand'
+import create, { State, StoreApi, StateCreator } from 'zustand'
 import {
   combine,
   devtools,
   persist,
+  StorePersistAddSetOption,
   redux,
   subscribeWithSelector,
 } from 'zustand/middleware'
@@ -248,6 +249,32 @@ describe('counter state spec (single middleware)', () => {
     }
     TestComponent
   })
+})
+
+it("persist works with slices pattern (issue #1046)", () => {
+  type Foo = { foo: number }
+  type FooMore = Foo & { more: number }
+  const createFoo: StateCreator<Foo, [["zustand/persist", unknown]], []> = (_get, _set, store) => {
+    return {
+      foo: 0,
+      test: () => {
+        // @ts-expect-error should not have setOptions
+        store.persist.setOptions
+
+        let _store = store as StorePersistAddSetOption<typeof store>
+        _store.persist.setOptions({
+          onRehydrateStorage: s => {
+            let _x: number = s.foo
+          }
+        })
+      }
+    }
+  }
+
+  const _useFooMore = create<FooMore>()(persist((...a) => ({
+    ...createFoo(...a),
+    more: 0
+  })))
 })
 
 describe('counter state spec (double middleware)', () => {

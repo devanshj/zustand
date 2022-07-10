@@ -81,11 +81,18 @@ interface StorePersist<S extends State, Ps> {
   persist: StorePersistMethods<S, Ps>
 }
 
-interface StorePersistMethods<S extends State, Ps> extends StorePersistMethodsWithoutSetOptions<S, Ps> {
+interface StorePersistMethods<S extends State, Ps> extends _StorePersistMethodsWithoutSetOptions<S, Ps> {
   setOptions: (options: Partial<PersistOptions<S, Ps>>) => void
 }
 
-interface StorePersistMethodsWithoutSetOptions<S extends State, Ps> {
+interface StorePersistMethodsWithoutSetOptions<S extends State, Ps> extends _StorePersistMethodsWithoutSetOptions<S, Ps> {
+  /**
+   * See TypeScript documentation to get `setOptions` with correct type instead of `undefined`
+   */
+  setOptions: undefined
+}
+
+interface _StorePersistMethodsWithoutSetOptions<S extends State, Ps> {
   clearStorage: () => void
   rehydrate: () => Promise<void>
   hasHydrated: () => boolean

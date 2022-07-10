@@ -258,10 +258,10 @@ it("persist works with slices pattern (issue #1046)", () => {
     return {
       foo: 0,
       test: () => {
-        // @ts-expect-error should not have setOptions
-        store.persist.setOptions
+        // @ts-expect-error setOptions is expected to be undefined
+        store.persist.setOptions({})
 
-        let _store = store as StorePersistAddSetOption<typeof store>
+        let _store = store as unknown as StorePersistAddSetOption<typeof store>
         _store.persist.setOptions({
           onRehydrateStorage: s => {
             let _x: number = s.foo

@@ -16,7 +16,33 @@ interface StorageValue<S> {
   version?: number
 }
 
-export interface PersistOptions<S, PersistedState = S> {
+export type PersistOptions<S, PersistedState = S> =
+  | PersistOptionsWithMigrate<S, PersistedState>
+  | PersistOptionsWithoutMigrate<S, PersistedState>
+
+interface PersistOptionsWithMigrate<S, PersistedState = S> extends PersistBaseOptions<S, PersistedState> {
+  /**
+   * A function to perform persisted state migration.
+   * This function will be called when persisted state versions mismatch with the one specified here.
+   */
+   migrate: (persistedState: unknown, version: number) => S | Promise<S>
+   /**
+    * A function to perform custom hydration merges when combining the stored state with the current one.
+    * By default, this function does a shallow merge.
+    */
+   merge?: (persistedState: PersistedState, currentState: S) => S
+}
+
+
+interface PersistOptionsWithoutMigrate<S, PersistedState = S> extends PersistBaseOptions<S, PersistedState> {
+   /**
+    * A function to perform custom hydration merges when combining the stored state with the current one.
+    * By default, this function does a shallow merge.
+    */
+   merge?: (persistedState: PersistedState | undefined, currentState: S) => S
+}
+
+interface PersistBaseOptions<S, PersistedState = S> {
   /** Name of the storage (must be unique) */
   name: string
   /**
@@ -63,16 +89,6 @@ export interface PersistOptions<S, PersistedState = S> {
    * This is useful when adding a breaking change to your store.
    */
   version?: number
-  /**
-   * A function to perform persisted state migration.
-   * This function will be called when persisted state versions mismatch with the one specified here.
-   */
-  migrate?: (persistedState: unknown, version: number) => S | Promise<S>
-  /**
-   * A function to perform custom hydration merges when combining the stored state with the current one.
-   * By default, this function does a shallow merge.
-   */
-  merge?: (persistedState: unknown, currentState: S) => S
 }
 
 type PersistListener<S> = (state: S) => void
@@ -229,8 +245,8 @@ const persistImpl: PersistImpl = (config, baseOptions) => (set, get, api) => {
             typeof deserializedStorageValue.version === 'number' &&
             deserializedStorageValue.version !== options.version
           ) {
-            if (options.migrate) {
-              return options.migrate(
+            if ((options as PersistOptionsWithMigrate<S, S>).migrate) {
+              return (options as PersistOptionsWithMigrate<S, S>).migrate(
                 deserializedStorageValue.state,
                 deserializedStorageValue.version
               )
@@ -267,7 +283,7 @@ const persistImpl: PersistImpl = (config, baseOptions) => (set, get, api) => {
       options = {
         ...options,
         ...newOptions,
-      }
+      } as typeof options
 
       if (newOptions.getStorage) {
         storage = newOptions.getStorage()

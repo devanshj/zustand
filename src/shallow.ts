@@ -1,24 +1,15 @@
-function shallow<
-  T extends (...args: unknown[]) => unknown,
-  U extends (...args: unknown[]) => unknown
->(objA: T, objB: U): boolean
+type JsonOrFunction = 
+  | string
+  | number
+  | symbol
+  | undefined
+  | null
+  | bigint
+  | { [K in string | number]: JsonOrFunction }
+  | JsonOrFunction[]
+  | ((...a: never[]) => unknown)
 
-function shallow<
-  T extends string | number | boolean,
-  U extends string | number | boolean
->(objA: T, objB: U): boolean
-
-function shallow<T extends unknown[], U extends unknown[]>(
-  objA: T,
-  objB: U
-): boolean
-
-function shallow<
-  T extends Record<string, unknown>,
-  U extends Record<string, unknown>
->(objA: T, objB: U): boolean
-
-function shallow<T, U>(objA: T, objB: U) {
+function shallow<T extends JsonOrFunction, U extends JsonOrFunction>(objA: T, objB: U) {
   if (Object.is(objA, objB)) {
     return true
   }
@@ -37,7 +28,7 @@ function shallow<T, U>(objA: T, objB: U) {
   for (let i = 0; i < keysA.length; i++) {
     if (
       !Object.prototype.hasOwnProperty.call(objB, keysA[i] as string) ||
-      !Object.is(objA[keysA[i] as keyof T], objB[keysA[i] as keyof U])
+      !Object.is(objA[keysA[i] as any], objB[keysA[i] as any])
     ) {
       return false
     }
